@@ -41,20 +41,27 @@ jobs:
       - name: Build Angular App
         run: ng build
 
-      - name: Deploy to DigitalOcean
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }} 
-          password: ${{ secrets.SSH_PASS }} 
-          script: |
-            cd /var/www/html 
-            rm -rf * 
-            cd /root/my-app/dist/my-app
-            cp -r . /var/www/html/
-            systemctl restart apache2
-           
-      - name: Post-Deployment Steps
+      - name: List Contents of Build Directory
         run: |
-          # Any post-deployment steps you may need, e.g., restarting Apache
-          sudo systemctl restart apache2 # Adjust for your server setup
+          ls -la $GITHUB_WORKSPACE/dist
+      
+      - name: List Contents of dist Subdirectory
+        run: |
+          ls -la $GITHUB_WORKSPACE/dist/*
+           
+      - name: Deploy
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
+          rsync -avz --exclude '.env' --exclude 'vendor/' ./ root@$SSH_HOST:/var/www/html/
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_IP: ${{ secrets.SSH_HOST }}
+
+      - name: SSH into Server and Restart Apache
+        run: |
+          ssh root@$SSH_HOST 'chmod -R 755 /var/www/html && systemctl restart apache2'
+        env:
+          SERVER_IP: ${{ secrets.SSH_HOST }}
