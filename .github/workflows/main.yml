@@ -24,14 +24,6 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Cache Node Modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
       - name: Install Dependencies
         run: npm install
 
@@ -46,17 +38,12 @@ jobs:
           ls -la $GITHUB_WORKSPACE/dist/*
            
       - name: Deploy to DigitalOcean
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }} # DigitalOcean droplet IP or hostname
-          username: ${{ secrets.SSH_USER }} # SSH username
-          password: ${{ secrets.SSH_PASS }} # SSH password (or use private key)
-          script: |
-            # Clear the existing contents of the Apache document root
-            sudo rm -rf /var/www/html/*
+        run: |
+          # Clear the existing contents of the Apache document root
+          sshpass -p ${{ secrets.SSH_PASS }} ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 'sudo rm -rf /var/www/html/*'
 
-            # Sync the contents of the dist subdirectory to the Apache document root
-            rsync -avz --delete $GITHUB_WORKSPACE/dist/ /var/www/html/
-            
-            # Restart Apache (adjust for your server setup)
-            sudo systemctl restart apache2
+          # Use rsync to synchronize the dist directory with the remote server
+          rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/dist/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/html/
+
+          # Restart Apache (adjust for your server setup)
+          sshpass -p ${{ secrets.SSH_PASS }} ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 'sudo systemctl restart apache2'
