@@ -40,28 +40,23 @@ jobs:
 
       - name: Build Angular App
         run: ng build
-
-      - name: List Contents of Build Directory
-        run: |
-          ls -la $GITHUB_WORKSPACE/dist
       
       - name: List Contents of dist Subdirectory
         run: |
           ls -la $GITHUB_WORKSPACE/dist/*
            
-      - name: Deploy
-        run: |
-          mkdir -p ~/.ssh/
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
-          rsync -avz --exclude '.env' --exclude 'vendor/' ./ root@$SSH_HOST:/var/www/html/
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SERVER_IP: ${{ secrets.SSH_HOST }}
+      - name: Deploy to DigitalOcean
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }} # DigitalOcean droplet IP or hostname
+          username: ${{ secrets.SSH_USER }} # SSH username
+          password: ${{ secrets.SSH_PASS }} # SSH password (or use private key)
+          script: |
+            # Clear the existing contents of the Apache document root
+            sudo rm -rf /var/www/html/*
 
-      - name: SSH into Server and Restart Apache
-        run: |
-          ssh root@$SSH_HOST 'chmod -R 755 /var/www/html && systemctl restart apache2'
-        env:
-          SERVER_IP: ${{ secrets.SSH_HOST }}
+            # Sync the contents of the dist subdirectory to the Apache document root
+            rsync -avz --delete $GITHUB_WORKSPACE/dist/ /var/www/html/
+            
+            # Restart Apache (adjust for your server setup)
+            sudo systemctl restart apache2
