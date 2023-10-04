@@ -36,6 +36,13 @@ jobs:
       - name: List Contents of dist Subdirectory
         run: |
           ls -la $GITHUB_WORKSPACE/dist/*
+
+      - name: Deploy
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
            
       - name: Deploy to DigitalOcean
         uses: appleboy/ssh-action@v0.1.2
