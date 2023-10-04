@@ -24,11 +24,6 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install rsync
-        run: |
-          sudo apt update
-          sudo apt install rsync -y
-
       - name: Cache Node Modules
         uses: actions/cache@v2
         with:
@@ -44,7 +39,7 @@ jobs:
         run: npm install -g @angular/cli
 
       - name: Build Angular App
-        run: ng build --prod
+        run: ng build
 
       - name: Deploy to DigitalOcean
         uses: appleboy/ssh-action@master
