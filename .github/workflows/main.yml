@@ -40,7 +40,7 @@ jobs:
       - name: Deploy
         run: |
           mkdir ~/.ssh/
-          echo "$SSH_KEY" > ~/.ssh/id_rsa
+          echo "$SSH_KEY" >> ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
