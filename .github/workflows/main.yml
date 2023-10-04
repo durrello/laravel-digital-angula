@@ -1,0 +1,65 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+    types: [closed]
+    
+  workflow_dispatch: # This allows you to manually trigger the workflow
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '12.x'
+
+      - name: Install rsync
+        run: |
+          sudo apt update
+          sudo apt install rsync -y
+
+      - name: Cache Node Modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Install Angular CLI
+        run: npm install -g @angular/cli
+
+      - name: Build Angular App
+        run: ng build --prod
+
+      - name: Deploy to DigitalOcean
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }} 
+          password: ${{ secrets.SSH_PASS }} 
+          script: |
+            cd /var/www/html 
+            rm -rf * 
+            cd /root/my-app/dist/my-app
+            cp -r . /var/www/html/
+            systemctl restart apache2
+           
+      - name: Post-Deployment Steps
+        run: |
+          # Any post-deployment steps you may need, e.g., restarting Apache
+          sudo systemctl restart apache2 # Adjust for your server setup
