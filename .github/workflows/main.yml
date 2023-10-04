@@ -38,12 +38,13 @@ jobs:
           ls -la $GITHUB_WORKSPACE/dist/*
            
       - name: Deploy to DigitalOcean
-        run: |
-          # Clear the existing contents of the Apache document root
-          sshpass -p ${{ secrets.SSH_PASS }} ssh root@${{ secrets.SSH_HOST }} 'sudo rm -rf /var/www/html/*'
-
-          # Use rsync to synchronize the dist directory with the remote server
-          rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/dist/ root@${{ secrets.SSH_HOST }}:/var/www/html/
-
-          # Restart Apache (adjust for your server setup)
-          sshpass -p ${{ secrets.SSH_PASS }} ssh root@${{ secrets.SSH_HOST }} 'sudo systemctl restart apache2'
+        uses: appleboy/ssh-action@v0.1.2
+        with:
+          host: ${{secrets.SSH_HOST}} 
+          key: ${{secrets.KEY}} 
+          username: ${{ secrets.SSH_USER }}
+     
+          script: |
+            rsync -avz --delete $GITHUB_WORKSPACE/dist/ /var/www/html/
+            systemctl restart apache2
+            echo 'Deployment successful to digital ocean' 
