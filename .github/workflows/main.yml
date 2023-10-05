@@ -47,12 +47,18 @@ jobs:
           SSH_KEY: ${{ secrets.SSH_KEY }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
 
-      - name: SSH into Server and Restart Apache
+      - name: Sync to Server
         run: |
-          ssh root@$SSH_HOST 'rsync -avz --delete $GITHUB_WORKSPACE/dist/ /var/www/html/ && chmod -R 755 /var/www/html && systemctl restart apache2'
+          rsync -avz --delete $GITHUB_WORKSPACE/dist/* root@$SSH_HOST:/var/www/html/
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+
+      - name: Restart Server
+        run: |
+          ssh root@$SSH_HOST 'systemctl restart apache2'
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
            
-      - name: Setup connection
+      - name: Deployment Status
         run: |
-          echo 'Deployment successful to digital ocean'
+          echo 'Deployment successful to Digital Ocean'
