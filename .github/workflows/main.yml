@@ -37,13 +37,15 @@ jobs:
         run: |
           ls -la $GITHUB_WORKSPACE/dist/*
 
-      - name: Deploy
+      - name: Setup connection
         run: |
-          mkdir ~/.ssh/
-          echo "$SSH_KEY" >> ~/.ssh/id_rsa
+          mkdir -p ~/.ssh/
+          echo "$SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
            
       - name: Deploy to DigitalOcean
         uses: appleboy/ssh-action@v0.1.2
