@@ -45,10 +45,11 @@ jobs:
 
       - name: Sync to Server
         run: |
-          rsync -avz --delete $GITHUB_WORKSPACE/dist/* $SSH_USER@$SSH_HOST:/var/www/html/
+          rsync -avz $GITHUB_WORKSPACE/dist/$APP_NAME/* $SSH_USER@$SSH_HOST:/var/www/html/
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USER: ${{ secrets.SSH_USER }}
+          APP_NAME: ${{ secrets.APP_NAME }}
 
       - name: SSH into Server and Restart Apache
         run: |
