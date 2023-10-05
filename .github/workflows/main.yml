@@ -32,10 +32,6 @@ jobs:
 
       - name: Build Angular App
         run: ng build
-      
-      - name: List Contents of dist Subdirectory
-        run: |
-          ls -la $GITHUB_WORKSPACE/dist/*
 
       - name: Setup connection
         run: |
