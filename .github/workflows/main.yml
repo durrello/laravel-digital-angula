@@ -49,7 +49,7 @@ jobs:
 
       - name: SSH into Server and Restart Apache
         run: |
-          ssh root@$SERVER_IP 'chmod -R 755 /var/www/html && systemctl restart apache2'
+          ssh root@$SSH_HOST 'chmod -R 755 /var/www/html && systemctl restart apache2'
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
            
