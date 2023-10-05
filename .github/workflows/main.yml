@@ -53,12 +53,12 @@ jobs:
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
 
-      - name: Restart Server
+      - name: SSH into Server and Restart Apache
         run: |
-          ssh root@$SSH_HOST 'systemctl restart apache2'
+          ssh root@$SSH_HOST 'chmod -R 755 /var/www/html && systemctl restart apache2'
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
-           
+          
       - name: Deployment Status
         run: |
           echo 'Deployment successful to Digital Ocean'
