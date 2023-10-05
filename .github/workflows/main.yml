@@ -49,15 +49,17 @@ jobs:
 
       - name: Sync to Server
         run: |
-          rsync -avz --delete $GITHUB_WORKSPACE/dist/* root@$SSH_HOST:/var/www/html/
+          rsync -avz --delete $GITHUB_WORKSPACE/dist/* $SSH_USER@$SSH_HOST:/var/www/html/
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
 
       - name: SSH into Server and Restart Apache
         run: |
-          ssh root@$SSH_HOST 'chmod -R 755 /var/www/html && systemctl restart apache2'
+          ssh $SSH_USER@$SSH_HOST 'chmod -R 755 /var/www/html && systemctl restart apache2'
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
           
       - name: Deployment Status
         run: |
