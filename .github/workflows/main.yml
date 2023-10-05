@@ -49,18 +49,10 @@ jobs:
 
       - name: SSH into Server and Restart Apache
         run: |
-          ssh root@$SSH_HOST 'chmod -R 755 /var/www/html && systemctl restart apache2'
+          ssh root@$SSH_HOST 'rsync -avz --delete $GITHUB_WORKSPACE/dist/ /var/www/html/ && chmod -R 755 /var/www/html && systemctl restart apache2'
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
            
-      - name: Deploy to DigitalOcean
-        uses: appleboy/ssh-action@v0.1.2
-        with:
-          host: ${{secrets.SSH_HOST}} 
-          key: ${{secrets.KEY}} 
-          username: ${{ secrets.SSH_USER }}
-     
-          script: |
-            rsync -avz --delete $GITHUB_WORKSPACE/dist/ /var/www/html/
-            systemctl restart apache2
-            echo 'Deployment successful to digital ocean' 
+      - name: Setup connection
+        run: |
+          echo 'Deployment successful to digital ocean'
